@@ -9,3 +9,4 @@ Github action sample code for release and tag automation
    - Test code will be ran again     
    - Get latest tag and make new version of tag (latest tag + 1)     
    - Release with new tag
+
