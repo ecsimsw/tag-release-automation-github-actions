@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+
+jobs:
+  test:
+    if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release')
+    runs-on: ubuntu-latest
+    steps:
+      - name: every new commit on this PR
+        run: echo "test will be executed by every commits on this PR" # Put test code here
+
+  release:
+    if:  github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'release')
+    permissions: write-all
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: get latest tag
+        run: |
+          echo "LATEST_TAG=$(curl -qsSL \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          "${{ github.api_url }}/repos/${{ github.repository }}/releases/latest" \
+          | jq -r .tag_name)" >> $GITHUB_ENV
+
+      - name: make new tag
+        run: |
+          echo "LATEST_TAG=${{ env.LATEST_TAG }}"
+          PREFIX_VER=${LATEST_TAG%.*}
+          SUFFIX_VER=$((${LATEST_TAG##*.}+1))
+
+          NEW_VER="${PREFIX_VER}.${SUFFIX_VER}"
+          echo "NEW_TAG=${NEW_VER}" >> $GITHUB_ENV
+
+      - name: create new tag and release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ env.NEW_TAG }}
+          release_name: ${{ env.NEW_TAG }}
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
+          draft: false
+          prerelease: false
