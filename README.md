@@ -1,7 +1,7 @@
 # github-action-release-automation
 Github action sample code for release and tag automation
 
-## Usage
+## Process
 1. Handle pull request [opened, synchronize, closed] events, on specific branch.  ('main' on this sample)  
 2. Filters specific labels in PR.  ('release' on this sample)
 3. Test job is activated when there is a new commit on this PR
